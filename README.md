@@ -99,15 +99,13 @@ print(f"影响: {result}")
 
 ```
 minguo-history-simulator/
-├── game.py              # 主游戏文件
-├── README.md            # 项目说明
-├── TODO.md              # 开发计划
-├── ai_engine.py         # AI引擎模块（开发中）
-├── events/              # 历史事件数据（计划）
-│   ├── beiyang.json     # 北洋时期事件
-│   ├── nanjing.json     # 南京十年事件
-│   └── war.json         # 抗战时期事件
-└── saves/               # 存档文件夹
+├── game.py                        # 游戏主逻辑
+├── ai_engine.py                   # AI引擎（事件生成、对话生成）
+├── historical_events_extended.py  # 政治军事事件库（50+事件）
+├── cultural_events.py             # 文化思想事件库（25+事件）
+├── diplomatic_events.py           # 外交事件库（7个重大外交事件）
+├── README.md                      # 本文档
+└── saves/                         # 存档目录（自动生成）
 ```
 
 ## 🛠️ 开发计划
