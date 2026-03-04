@@ -176,6 +176,6 @@ def get_state(session_id):
 
 if __name__ == '__main__':
     print("\n🚀 启动《历史模拟器：民国》Web服务器...")
-    print("🌐 访问地址：http://localhost:5000")
+    print("🌐 访问地址：http://localhost:5001")
     print("📱 在浏览器中打开即可开始游戏！\n")
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    app.run(debug=True, port=5001, host='0.0.0.0')

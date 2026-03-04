@@ -331,7 +331,10 @@
         
         async function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('game-content').innerHTML = '<div class="loading">🎮 正在初始化游戏...</div>';
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.textContent = '🎮 正在初始化游戏...';
+            document.getElementById('game-content').appendChild(loadingDiv);
             
             try {
                 const response = await fetch('/api/start', {
@@ -342,7 +345,8 @@
                 sessionId = data.session_id;
                 gameState = data.state;
                 
-                document.getElementById('game-content').innerHTML = document.getElementById('game-screen').outerHTML;
+                loadingDiv.remove();
+                document.getElementById('game-screen').classList.remove('hidden');
                 updateGameUI();
             } catch (error) {
                 alert('游戏启动失败：' + error.message);
