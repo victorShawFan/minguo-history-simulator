@@ -19,6 +19,13 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 from enum import Enum
 
+try:
+    from ai_engine import AIEngine, EventContext
+    AI_AVAILABLE = True
+except ImportError:
+    AI_AVAILABLE = False
+    print("AI引擎不可用，将使用预设事件")
+
 class Era(Enum):
     EARLY_REPUBLIC = "北洋时期 (1912-1928)"
     NANJING_DECADE = "南京十年 (1928-1937)"
@@ -138,10 +145,15 @@ class HistoricalEvent:
 class MinguoGame:
     """民国历史模拟器主游戏类"""
     
-    def __init__(self):
+    def __init__(self, use_ai: bool = False, api_key: Optional[str] = None):
         self.player: Optional[Character] = None
         self.state = GameState()
-        self.ai_client = None
+        self.use_ai = use_ai and AI_AVAILABLE
+        self.ai_engine = None
+        
+        if self.use_ai:
+            self.ai_engine = AIEngine(api_key=api_key)
+            print("✅ AI引擎已启用")
         
     def initialize_ai(self, api_key: str = None):
         """初始化AI引擎（GPT-5.1）"""
@@ -216,7 +228,28 @@ class MinguoGame:
             self.state.era = Era.EARLY_REPUBLIC
     
     def generate_random_event(self) -> dict:
-        """生成随机事件（未来接入AI）"""
+        """生成随机事件（可接入AI）"""
+        if self.use_ai and self.ai_engine:
+            try:
+                context = EventContext(
+                    year=self.state.year,
+                    month=self.state.month,
+                    location=self.state.current_location,
+                    era=self.state.era.value,
+                    player_name=self.player.name,
+                    player_faction=self.player.faction.value,
+                    player_attributes={
+                        "money": self.player.money,
+                        "influence": self.player.influence,
+                        "military": self.player.military,
+                        "intelligence": self.player.intelligence,
+                        "charisma": self.player.charisma
+                    }
+                )
+                return self.ai_engine.generate_event(context)
+            except Exception as e:
+                print(f"AI生成失败，使用预设事件: {e}")
+        
         random_events = [
             {
                 "type": "social",
