@@ -313,4 +313,72 @@ MILITARY_EVENTS = [
         },
         commanders={
             "中国军队": ["蒋介石（统帅）", "陈诚", "薛岳", "白崇禧"],
-            "日本侵略军": ["畑俊六", "
+            "日本侵略军": ["畑俊六", "冈村宁次"]
+        },
+        forces={
+            "中国军队": "约110万人",
+            "日本侵略军": "约35万人"
+        },
+        casualties={
+            "中国军队": "阵亡、负伤约25万人",
+            "日本侵略军": "阵亡、负伤约10万人（日方公布3.5万，实际更高）"
+        },
+        result="日军占领武汉，但战略速决失败",
+        significance="大量消耗日军，抗战进入相持阶段，日本陷入中国战场泥潭，但黄河决堤造成人道灾难",
+        military_impact=-20
+    ),
+    
+    # 昆仑关战役
+    MilitaryEvent(
+        event_id="MIL_012",
+        date=date(1939, 12, 18),
+        title="昆仑关战役",
+        description="日军第5师团（号称'钢军'）攻占广西南宁、昆仑关，威胁西南大后方。蒋介石急调精锐第5军（杜聿明）、桂军（白崇禧）反攻。激战月余，中国军队付出重大伤亡夺回昆仑关，击毙日军'钢军之花'中村正雄少将旅团长。日军撤出南宁。此战是国军在桂南的重大胜利，但第5军伤亡过半。",
+        location="广西昆仑关、南宁",
+        belligerents={
+            "中国军队": ["第5军（杜聿明）", "桂军"],
+            "日本侵略军": ["第5师团（钢军）"]
+        },
+        commanders={
+            "中国军队": ["白崇禧", "杜聿明", "戴安澜", "郑洞国"],
+            "日本侵略军": ["今村均", "中村正雄（阵亡）"]
+        },
+        forces={
+            "中国军队": "约15万人",
+            "日本侵略军": "约2万人"
+        },
+        casualties={
+            "中国军队": "阵亡约1.4万人，负伤2万余人",
+            "日本侵略军": "阵亡约4000人（日方公布），含中村正雄少将"
+        },
+        result="中国军队收复昆仑关，日军撤出南宁",
+        significance="国军首次攻坚战胜利，击毙日军少将，保卫西南大后方，但伤亡代价巨大",
+        military_impact=50
+    ),
+]
+
+def get_battles_by_period(start: date, end: date) -> List[MilitaryEvent]:
+    """按时期筛选战役"""
+    return [event for event in MILITARY_EVENTS if start <= event.date <= end]
+
+def get_battles_by_location(location: str) -> List[MilitaryEvent]:
+    """按地点筛选战役"""
+    return [event for event in MILITARY_EVENTS if location in event.location]
+
+def get_anti_japanese_battles() -> List[MilitaryEvent]:
+    """获取所有抗日战役"""
+    return [event for event in MILITARY_EVENTS 
+            if "日本" in str(event.belligerents)]
+
+def calculate_war_impact(events: List[MilitaryEvent]) -> Dict[str, float]:
+    """计算战争影响评分"""
+    total_impact = sum(e.military_impact for e in events)
+    anti_japanese = [e for e in events if "日本" in str(e.belligerents)]
+    civil_war = [e for e in events if "日本" not in str(e.belligerents)]
+    
+    return {
+        "总体军事影响": total_impact,
+        "抗日战争胜利": sum(e.military_impact for e in anti_japanese if e.military_impact > 0),
+        "内战损耗": abs(sum(e.military_impact for e in civil_war if e.military_impact < 0)),
+        "民族抵抗指数": len(anti_japanese) * 10
+    }
