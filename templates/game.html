@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史模拟器：民国 (1912-1949)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        #game-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        #game-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        #game-header .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        #game-content {
+            padding: 30px;
+        }
+        
+        .status-bar {
+            background: #f7f9fc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .time-info {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .stat-bar {
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        #event-section {
+            background: #fff9e6;
+            border-left: 5px solid #ffc107;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        #event-section h2 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .event-description {
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .event-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #666;
+            margin-top: 15px;
+        }
+        
+        .event-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        #decision-section {
+            background: #f0f4f8;
+            border-radius: 10px;
+            padding: 25px;
+        }
+        
+        #decision-section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .decisions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .decision-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .decision-btn:hover {
+            border-color: #667eea;
+            background: #f7f9fc;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .decision-btn:active {
+            transform: translateY(0);
+        }
+        
+        .decision-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        #start-screen {
+            text-align: center;
+            padding: 50px 30px;
+        }
+        
+        #start-screen h2 {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        #start-screen p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        #game-over-screen {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+            margin: 20px;
+        }
+        
+        #game-over-screen h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .summary {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="game-header">
+            <h1>🏛️ 历史模拟器：民国</h1>
+            <div class="subtitle">1912 - 1949 · 改写历史，由你决定</div>
+        </div>
+        
+        <div id="game-content">
+            <!-- 开始界面 -->
+            <div id="start-screen">
+                <h2>欢迎来到民国时代</h2>
+                <p>您将扮演民国时期的决策者，面对历史的关键时刻。<br>
+                通过明智的选择，引导国家走向繁荣，或是见证历史的悲剧重演。<br>
+                基于真实历史事件，每个决策都将影响国家命运。</p>
+                <button class="btn-primary" onclick="startGame()">开始游戏</button>
+            </div>
+            
+            <!-- 游戏界面 -->
+            <div id="game-screen" class="hidden">
+                <!-- 状态栏 -->
+                <div class="status-bar">
+                    <div class="time-info">
+                        📅 <span id="current-time"></span> · 第 <span id="turn-number"></span> 回合
+                    </div>
+                    <div class="stats-grid" id="stats-container"></div>
+                </div>
+                
+                <!-- 事件区 -->
+                <div id="event-section">
+                    <h2 id="event-title"></h2>
+                    <div class="event-description" id="event-description"></div>
+                    <div class="event-meta" id="event-meta"></div>
+                </div>
+                
+                <!-- 决策区 -->
+                <div id="decision-section">
+                    <h3>💭 请选择您的应对策略</h3>
+                    <div class="decisions-grid">
+                        <div class="decision-btn" onclick="makeDecision('1')">
+                            <div class="decision-icon">🎖️</div>
+                            <div>加强军事力量</div>
+                        </div>
+                        <div class="decision-btn" onclick="makeDecision('2')">
+                            <div class="decision-icon">💰</div>
+                            <div>发展经济建设</div>
+                        </div>
+                        <div class="decision-btn" onclick="makeDecision('3')">
+                            <div class="decision-icon">🤝</div>
+                            <div>改善外交关系</div>
+                        </div>
+                        <div class="decision-btn" onclick="makeDecision('4')">
+                            <div class="decision-icon">📚</div>
+                            <div>推动教育文化</div>
+                        </div>
+                        <div class="decision-btn" onclick="makeDecision('5')">
+                            <div class="decision-icon">⏭️</div>
+                            <div>维持现状</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 游戏结束界面 -->
+            <div id="game-over-screen" class="hidden">
+                <h2>🏆 游戏结束</h2>
+                <div class="summary" id="game-summary"></div>
+                <button class="btn-primary" onclick="location.reload()">再玩一次</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let sessionId = null;
+        let gameState = null;
+        
+        async function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-content').innerHTML = '<div class="loading">🎮 正在初始化游戏...</div>';
+            
+            try {
+                const response = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+                sessionId = data.session_id;
+                gameState = data.state;
+                
+                document.getElementById('game-content').innerHTML = document.getElementById('game-screen').outerHTML;
+                updateGameUI();
+            } catch (error) {
+                alert('游戏启动失败：' + error.message);
+                location.reload();
+            }
+        }
+        
+        function updateGameUI() {
+            // 更新时间和回合
+            document.getElementById('current-time').textContent = `${gameState.year}年${gameState.month}月`;
+            document.getElementById('turn-number').textContent = gameState.turn;
+            
+            // 更新国力状态
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = '';
+            for (const [key, value] of Object.entries(gameState.stats)) {
+                statsContainer.innerHTML += `
+                    <div class="stat-item">
+                        <div class="stat-label">${key}</div>
+                        <div class="stat-bar">
+                            <div class="stat-fill" style="width: ${value}%">${value}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 更新事件
+            const eventSection = document.getElementById('event-section');
+            if (gameState.current_event) {
+                const event = gameState.current_event;
+                document.getElementById('event-title').textContent = `📰 ${event.title}`;
+                document.getElementById('event-description').textContent = event.description;
+                
+                let metaHTML = `
+                    <div class="event-meta-item">🎯 影响力：${'⭐'.repeat(event.impact_level)}</div>
+                    <div class="event-meta-item">👥 关键人物：${event.key_figures.join('、')}</div>
+                    <div class="event-meta-item">📍 地点：${event.locations.join('、')}</div>
+                `;
+                if (event.auto_effect) {
+                    metaHTML += `<div class="event-meta-item">⚡ ${event.auto_effect}</div>`;
+                }
+                document.getElementById('event-meta').innerHTML = metaHTML;
+                eventSection.classList.remove('hidden');
+            } else {
+                document.getElementById('event-title').textContent = '📰 风平浪静';
+                document.getElementById('event-description').textContent = '本回合没有重大事件发生，这是发展国力的好时机。';
+                document.getElementById('event-meta').innerHTML = '';
+            }
+        }
+        
+        async function makeDecision(choice) {
+            // 禁用所有按钮
+            const buttons = document.querySelectorAll('.decision-btn');
+            buttons.forEach(btn => btn.style.pointerEvents = 'none');
+            
+            try {
+                const response = await fetch('/api/decision', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({session_id: sessionId, choice: choice})
+                });
+                const data = await response.json();
+                
+                gameState = data.state;
+                
+                // 检查游戏是否结束
+                if (data.game_over.over) {
+                    showGameOver(data.game_over);
+                } else {
+                    updateGameUI();
+                    buttons.forEach(btn => btn.style.pointerEvents = 'auto');
+                }
+            } catch (error) {
+                alert('决策执行失败：' + error.message);
+                buttons.forEach(btn => btn.style.pointerEvents = 'auto');
+            }
+        }
+        
+        function showGameOver(gameOverInfo) {
+            document.getElementById('game-screen').classList.add('hidden');
+            const gameOverScreen = document.getElementById('game-over-screen');
+            gameOverScreen.classList.remove('hidden');
+            
+            const totalScore = Object.values(gameState.stats).reduce((a, b) => a + b, 0);
+            let rating;
+            if (totalScore >= 600) rating = 'SSS - 完美统治！';
+            else if (totalScore >= 500) rating = 'SS - 卓越领导！';
+            else if (totalScore >= 400) rating = 'S - 出色表现！';
+            else if (totalScore >= 300) rating = 'A - 良好发展';
+            else if (totalScore >= 200) rating = 'B - 勉强及格';
+            else rating = 'C - 亟需改进';
+            
+            document.getElementById('game-summary').innerHTML = `
+                <h3>${gameOverInfo.message}</h3>
+                <p>⏱️ 游戏时长：${gameState.year - 1912}年（1912-${gameState.year}）</p>
+                <p>📝 触发事件：${gameState.events_count}个</p>
+                <p>🎯 综合评分：${totalScore}/700</p>
+                <p>🏅 评级：${rating}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
